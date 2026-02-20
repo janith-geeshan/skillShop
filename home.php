@@ -1,4 +1,73 @@
-<?php include "header.php"; ?>
+<?php
+
+include "header.php";
+
+// Get featured products
+
+$productResult = Database::search("SELECT 
+                                        p.`id`,
+                                        p.`title`,
+                                        p.`description`,
+                                        p.`price`,
+                                        p.`image_url`, 
+                                        u.`fname`,
+                                        COUNT(f.`id`) AS `review_count`,
+                                        COALESCE(AVG(f.`rating`),0) AS `avg_rating`
+                                    FROM `product` p 
+                                    JOIN `user` u ON p.`seller_id` = u.`id`
+                                    LEFT JOIN `feedback` f ON p.`id` = f.`product_id`
+                                    GROUP BY p.`id`
+                                    LIMIT 6");
+
+$products = [];
+if ($productResult && $productResult->num_rows > 0) {
+    while ($product = $productResult->fetch_assoc()) {
+        $products[] = $product;
+    }
+}
+
+// Get featured testimonials from feedback table
+$testimonialResult = Database::search(
+    "SELECT 
+        f.`rating`,
+        f.`message`,
+        u.`fname`,
+        u.`lname`,
+        u.`id`,
+        up.`avatar_url`
+    FROM `feedback` f
+    JOIN `user` u ON f.`user_id` = u.`id`
+    LEFT JOIN `user_profile` up ON u.`id`= up.`user_id`
+    WHERE f.`is_featured` = 1
+    LIMIT 3"
+);
+
+$testimonials = [];
+if ($testimonialResult && $testimonialResult->num_rows > 0) {
+    while ($testimonial = $testimonialResult->fetch_assoc()) {
+        $testimonials[] = $testimonial;
+    }
+}
+
+//Get platform statistics
+$usersResult = Database::search("SELECT COUNT(DISTINCT `id`) AS `total_users` FROM `user`;");
+$productCountResult = Database::search("SELECT COUNT(`id`) AS `total_products` FROM `product`;");
+$feedbackStatusResult = Database::search("SELECT AVG(`rating`) AS `avg_rating` FROM `feedback`;");
+$ordersStatusResult = Database::search("SELECT COUNT(`id`) AS `total_orders` ,SUM(`total_amount`) AS `total_revenue` 
+                                        FROM `order`;");
+
+
+$totalUsers = ($usersResult && $row = $usersResult->fetch_assoc()) ? $row["total_users"] : 0;
+$totalProducts = ($productCountResult && $row = $productCountResult->fetch_assoc()) ? $row["total_products"] : 0;
+$avgRating = ($feedbackStatusResult && $row = $feedbackStatusResult->fetch_assoc()) ?
+    round(($row["avg_rating"] / 5) * 100, 0)
+    : 0;
+
+$totalOrders = ($ordersStatusResult && $row = $ordersStatusResult->fetch_assoc()) ? $row["total_orders"] : 0;
+$totalRevenue = ($ordersStatusResult && $row = $ordersStatusResult->fetch_assoc()) ?
+    intval($row["total_revenue"] / 1000000) : 0;
+
+?>
 <!-- Hero Section -->
 <section class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-16 md:py-24">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -91,6 +160,34 @@
             <div id="carousel" class="flex transition-transform duration-500 ease-out" style="transform: translateX(0);">
 
                 <!-- Carousel items -->
+                <?php if (count($products) > 0): ?>
+                    <?php foreach ($products as $product): ?>
+                        <div class="carousel-item flex-shrink-0 w-full md:w-1/3 px-3 pb-4">
+                            <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all h-full">
+                                <img src="<?php echo $product["image_url"]; ?>" class="w-full h-40 object-cover" />
+                                <div class="p-5">
+                                    <h3 class="font-bold text-lg mb-2"><?php echo $product["title"]; ?></h3>
+                                    <p class="text-gray-600 text-sm mb-4"><?php echo $product["description"]; ?></p>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-blue-600 font-bold">
+                                            Rs. <?php echo $product["price"]; ?>
+                                        </span>
+                                        <span class="text-yellow-400">⭐ <?php echo round($product["avg_rating"], 1); ?>
+                                            (<?php echo $product["review_count"]; ?>)
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <!-- No product img -->
+                    <div class="carousel-item flex-shrink-0 w-full md:w-1/3 px-3 pb-4">
+                        <div class="bg-white rounded-xl overflow-hidden shadow-lg p-8 text-center h-full flex items-center">
+                            <p class="text-gray-500">No products available yet. Check later.</p>
+                        </div>
+                    </div>
+                <?php endif; ?>
                 <div class="carousel-item flex-shrink-0 w-full md:w-1/3 px-3 pb-4">
                     <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all h-full">
                         <img src="assets/images/cover1.jpg" class="w-full h-40 object-cover" />
@@ -246,38 +343,32 @@
     </h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-        <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-2xl transition-shadow hover:scale-105 duration-300">
-            <div class="flex items-center mb-4">
-                <img src="https://images.unsplash.com/photo-1562788869-4ed32648eb72?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Nnx8b2ZmaWNlJTIwcGVyc29ufGVufDB8fDB8fHww" class="w-12 h-12  rounded-full mr-4" />
-                <div>
-                    <p class="font-bold text-gray-900">Naleen Fernando</p>
-                    <p class="text-sm text-yellow-400">⭐⭐⭐⭐⭐</p>
+        <?php if (count($testimonials) > 0): ?>
+            <?php foreach ($testimonials as $idx => $testimonial): ?>
+                <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-2xl transition-shadow hover:scale-105 duration-300">
+                    <div class="flex items-center mb-4">
+                        <img src="<?php echo $testimonial["avatar_url"]; ?>" class="w-12 h-12  rounded-full mr-4" />
+                        <div>
+                            <p class="font-bold text-gray-900"><?php echo $testimonial["fname"] . " " . $testimonial["lname"]; ?></p>
+                            <p class="text-sm text-yellow-400">
+                                <?php
+                                $stars = '';
+                                for ($i = 0; $i < $testimonial["rating"]; $i++) {
+                                    $stars .= '⭐';
+                                }
+                                echo $stars;
+                                ?>
+                            </p>
+                        </div>
+                    </div>
+                    <p class="text-gray-600"><?php echo $testimonial["message"]; ?></p>
                 </div>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="bg-white rounded-lg shadow-lg p-8 text-center col-span-3">
+                <p class="text-gray-500">No Testimonial yet. Be the first to leave a review.</p>
             </div>
-            <p class="text-gray-600">Skillshop helped me to learn web development and land a great job.</p>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-2xl transition-shadow hover:scale-105 duration-300">
-            <div class="flex items-center mb-4">
-                <img src="https://images.unsplash.com/photo-1589386417686-0d34b5903d23?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8b2ZmaWNlJTIwcGVyc29ufGVufDB8fDB8fHww" class="w-12 h-12  rounded-full mr-4" />
-                <div>
-                    <p class="font-bold text-gray-900">Isuru Sampath</p>
-                    <p class="text-sm text-yellow-400">⭐⭐⭐⭐</p>
-                </div>
-            </div>
-            <p class="text-gray-600">Skillshop was the best.</p>
-        </div>
-
-        <div class="bg-white rounded-lg shadow-lg p-8 hover:shadow-2xl transition-shadow hover:scale-105 duration-300">
-            <div class="flex items-center mb-4">
-                <img src="https://images.unsplash.com/photo-1624237326876-90ebbdf28e59?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTR8fG9mZmljZSUyMHBlcnNvbnxlbnwwfHwwfHx8MA%3D%3D" class="w-12 h-12  rounded-full mr-4" />
-                <div>
-                    <p class="font-bold text-gray-900">Dave Morgan</p>
-                    <p class="text-sm text-yellow-400">⭐⭐⭐⭐⭐</p>
-                </div>
-            </div>
-            <p class="text-gray-600">This was a real turning point in my professional carrer.</p>
-        </div>
+        <?php endif; ?>
 
     </div>
 </section>
@@ -289,28 +380,28 @@
 
             <div class="hover:scale-110 transition-transform duration-300 cursor-pointer">
                 <div class="text-4xl md:text-5xl font-bold mb-2">
-                    50K+
+                    <?php echo number_format($totalUsers); ?>+
                 </div>
                 <p class="text-blue-100">Active Users</p>
             </div>
 
             <div class="hover:scale-110 transition-transform duration-300 cursor-pointer">
                 <div class="text-4xl md:text-5xl font-bold mb-2">
-                    10K+
+                    <?php echo number_format($totalProducts); ?>+
                 </div>
                 <p class="text-blue-100">Skill Listed</p>
             </div>
 
             <div class="hover:scale-110 transition-transform duration-300 cursor-pointer">
                 <div class="text-4xl md:text-5xl font-bold mb-2">
-                    98%
+                    <?php echo $avgRating; ?>%
                 </div>
                 <p class="text-blue-100">Satisfaction Rate</p>
             </div>
 
             <div class="hover:scale-110 transition-transform duration-300 cursor-pointer">
                 <div class="text-4xl md:text-5xl font-bold mb-2">
-                    100M+
+                    <?php echo number_format($totalRevenue); ?>M+
                 </div>
                 <p class="text-blue-100">transaction Value</p>
             </div>
@@ -370,7 +461,7 @@
                         class="bg-white text-blue-600 px-8 py-3 rounded-lg font-bold hover:shadow-2x1 inline-block transition-all hover:scale-105">
                         Go to Dashboard</a>
                     <a href="#browse"
-                        class="border-2 border-white text-white px-8 py-3 rounded-1g font-bold hover:bg-white hover:bg-opacity-20 inline-block transition-all">
+                        class="border-2 border-white text-white px-8 py-3 rounded-lg font-bold hover:bg-white hover:bg-opacity-20 inline-block transition-all">
                         Explore More</a>
                 <?php elseif ($userRole == "seller"): ?>
                     <a href="seller-dashboard.php"
@@ -398,8 +489,8 @@
 <script>
     var currentSlide = 0;
     var itemsPreview = window.innerWidth >= 768 ? 3 : 1;
-    var totalItems   = 6;
-    var maxSlides    = Math.ceil(totalItems / itemsPreview) - 1;
+    var totalItems = 6;
+    var maxSlides = Math.ceil(totalItems / itemsPreview) - 1;
 
     function slideCarousel(direction) {
         currentSlide += direction;

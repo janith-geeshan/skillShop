@@ -24,11 +24,14 @@ class Database
         return $result;
     }
 
-    public static function search($query, $types, $params)
+    public static function search($query, $types = null, $params = [])
     {
         $conn = self::getConnection();
         $statement = $conn->prepare($query);
-        $statement->bind_param($types, ...$params);
+        if ($types != null && !empty($params)) {
+            $statement->bind_param($types, ...$params);
+        }
+
         $statement->execute();
         $result = $statement->get_result();
         $statement->close();
