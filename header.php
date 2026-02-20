@@ -1,13 +1,12 @@
 <?php
 session_start();
 
-$loggedIn = isset($_SESSION["logged_in"]) ? $_SESSION["logged_in"] : false;
 
-if (!$loggedIn) {
+if (!isset($_SESSION["logged_in"]) || $_SESSION["logged_in"] != true) {
     require_once "process/authCheck.php";
 }
 
-
+$loggedIn = isset($_SESSION["logged_in"]) ? $_SESSION["logged_in"] : false;
 $userName = isset($_SESSION["user_name"]) ? $_SESSION["user_name"] : "";
 $userRole = isset($_SESSION["active_account_type"]) ? $_SESSION["active_account_type"] : "";
 
