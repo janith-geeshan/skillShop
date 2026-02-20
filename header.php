@@ -1,10 +1,13 @@
 <?php
-// ensure a session is active before reading any session variables
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
-}
+session_start();
 
 $loggedIn = isset($_SESSION["logged_in"]) ? $_SESSION["logged_in"] : false;
+
+if (!$loggedIn) {
+    require_once "process/authCheck.php";
+}
+
+
 $userName = isset($_SESSION["user_name"]) ? $_SESSION["user_name"] : "";
 $userRole = isset($_SESSION["active_account_type"]) ? $_SESSION["active_account_type"] : "";
 
