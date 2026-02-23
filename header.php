@@ -127,7 +127,7 @@ $userRole = isset($_SESSION["active_account_type"]) ? $_SESSION["active_account_
                                 <a href="<?php echo $userRole == "buyer" ? "buyer-dashboard.php" : "seller-dashboard.php"; ?>"
                                     class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 
                                 transition-colors duration-150">📊 Dashboard</a>
-                                <a href="user-Profile.php"
+                                <a href="user-profile.php"
                                     class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 
                                 transition-colors duration-150">👤 My Profile</a>
                                 <a href="process/logoutProcess.php"

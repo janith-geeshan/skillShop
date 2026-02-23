@@ -488,9 +488,14 @@ $totalRevenue = ($ordersStatusResult && $row = $ordersStatusResult->fetch_assoc(
 
 <script>
     var currentSlide = 0;
-    var itemsPreview = window.innerWidth >= 768 ? 3 : 1;
+    var itemsPreView = window.innerWidth >= 768 ? 3 : 1;
+    var totalItems = <?php echo count($products) ?>;
+    var maxSlides = Math.ceil(totalItems / itemsPreView) - 1;
+
+    var currentSlide = 0;
+    var itemsPerView = window.innerWidth >= 768 ? 3 : 1;
     var totalItems = 6;
-    var maxSlides = Math.ceil(totalItems / itemsPreview) - 1;
+    var maxSlides = Math.ceil(totalItems / itemsPerView) - 1;
 
     function slideCarousel(direction) {
         currentSlide += direction;
@@ -500,7 +505,6 @@ $totalRevenue = ($ordersStatusResult && $row = $ordersStatusResult->fetch_assoc(
         } else if (currentSlide < 0) {
             currentSlide = maxSlides;
         }
-
         updateCarousel();
     }
 
@@ -511,11 +515,11 @@ $totalRevenue = ($ordersStatusResult && $row = $ordersStatusResult->fetch_assoc(
 
     function updateCarousel() {
         var carousel = document.getElementById("carousel");
-        var slideWidth = 100 / itemsPreview;
-        var offSet = currentSlide * slideWidth;
-        carousel.style.transform = `translateX(${offSet}%)`;
+        var slideWidth = 100;
+        var offset = -currentSlide * slideWidth;
+        carousel.style.transform = `translateX(${offset}%)`;
 
-        //Update dots
+        //update dots
         var dotsContainer = document.getElementById("carousel-indicators");
         var dots = dotsContainer.querySelectorAll(".carousel-dot");
 
@@ -530,26 +534,30 @@ $totalRevenue = ($ordersStatusResult && $row = $ordersStatusResult->fetch_assoc(
         });
     }
 
-    // Auto slide carousel every 5 seconds
+    //Auto slide carousel
+
     setInterval(() => {
         slideCarousel(1);
-    }, 5000);
+    }, 4000);
 
-    //Handle responsive changes
+    //handle responsive changes
+
     window.addEventListener("resize", () => {
         updateCarousel();
     });
 
-    // Initiallize dots onload
+    //Initialize dots onload
+
     window.addEventListener("load", () => {
         var dotsContainer = document.getElementById("carousel-indicators");
-        dotsContainer.innerHTML = "";
+        dotsContiner.innerTML = ""
         for (var i = 0; i <= maxSlides; i++) {
             var dot = document.createElement("button");
             dot.onclick = () => goToSlide(i);
-            dot.className = `carousel-dot w-3 h-3 rounded-full transaction-all ${i == 0 ? "bg-blue-600" : "bg-gray-300"}`;
+            dot.className = `carousel-dot w-3 h-3 rounded-full transition-all ${i == 0 ? "bg-blue-600" : "bg-gray-300"}`;
             dotsContainer.appendChild(dot);
         }
+
     });
 </script>
 
