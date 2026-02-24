@@ -1,8 +1,10 @@
 <?php
+error_reporting(0);
+ini_set('display_errors', 0);
 
 header('Content-Type: application/json');
 
-require "./db/connection.php";
+require "../db/connection.php";
 
 if (isset($_POST["country_id"])) {
 

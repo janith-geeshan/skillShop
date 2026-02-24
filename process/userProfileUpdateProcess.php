@@ -1,0 +1,185 @@
+<?php
+header("Content-Type: application/json");
+
+session_start();
+
+
+require "../db/connection.php";
+
+if (!isset($_SESSION["logged_in"]) || $_SESSION["logged_in"] != true) {
+    echo json_encode([
+        "success" => false,
+        "message" => "Unauthorized access!"
+    ]);
+    exit;
+}
+
+$userId = $_SESSION["user_id"];
+
+//Get from data
+$fname = isset($_POST["fname"]) ? $_POST["fname"] : "";
+$lname = isset($_POST["lname"]) ? $_POST["lname"] : "";
+$email = isset($_POST["email"]) ? $_POST["email"] : "";
+$bio = isset($_POST["bio"]) ? $_POST["bio"] : "";
+$genderId = isset($_POST["genderID"]) ? $_POST["genderID"] : "";
+$mobile = isset($_POST["mobile"]) ? $_POST["mobile"] : "";
+$line1 = isset($_POST["line1"]) ? $_POST["line1"] : "";
+$line2 = isset($_POST["line2"]) ? $_POST["line2"] : "";
+$cityId = isset($_POST["cityID"]) ? $_POST["cityID"] : "";
+$avatarUrl = ""; // Will be filled by upload logic below
+
+// Handle avatar file upload
+if (isset($_FILES["avatarFile"]) && $_FILES["avatarFile"]["error"] === UPLOAD_ERR_OK) {
+    $uploadDir = "../assets/images/avatars/";
+    $fileExt = strtolower(pathinfo($_FILES["avatarFile"]["name"], PATHINFO_EXTENSION));
+    $allowedExts = ["jpg", "jpeg", "png", "gif", "webp"];
+
+    if (!in_array($fileExt, $allowedExts)) {
+        echo json_encode(["success" => false, "message" => "Invalid image format. Use jpg, png, gif or webp."]);
+        exit;
+    }
+    if ($_FILES["avatarFile"]["size"] > 5 * 1024 * 1024) {
+        echo json_encode(["success" => false, "message" => "Image must be under 5MB."]);
+        exit;
+    }
+
+    $newFileName = "avatar_" . $userId . "_" . time() . "." . $fileExt;
+    $uploadPath = $uploadDir . $newFileName;
+
+    if (move_uploaded_file($_FILES["avatarFile"]["tmp_name"], $uploadPath)) {
+        $avatarUrl = "assets/images/avatars/" . $newFileName;
+    } else {
+        echo json_encode(["success" => false, "message" => "Failed to upload avatar image."]);
+        exit;
+    }
+} else {
+    // No new file — keep existing avatar from DB
+    $existingProfile = Database::search(
+        "SELECT `avatar_url` FROM `user_profile` WHERE `user_id`=?",
+        "i",
+        [$userId]
+    );
+    if ($existingProfile && $existingProfile->num_rows > 0) {
+        $existingRow = $existingProfile->fetch_assoc();
+        $avatarUrl = $existingRow["avatar_url"] ?? "";
+    }
+}
+
+
+//Validation
+if (empty($fname)) {
+    echo json_encode(["success" => false, "message" => "First Name is required!"]);
+} else if (empty($lname)) {
+    echo json_encode(["success" => false, "message" => "Last Name is required!"]);
+} else if (empty($email)) {
+    echo json_encode(["success" => false, "message" => "Email is required!"]);
+} else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    echo json_encode(["success" => false, "message" => "Invalid email format!"]);
+} else if (strlen($email) >= 150) {
+    echo json_encode(["success" => false, "message" => "Email must be less than 150 characters!"]);
+} else if (!empty($bio) && strlen($bio) > 500) {
+    echo json_encode(["success" => false, "message" => "Bio must be minimum 500 characters!"]);
+} else if (!empty($mobile) && !preg_match("/^\d{10}$/", $mobile)) {
+    echo json_encode(["success" => false, "message" => "Mobile must be 10 digits!"]);
+} else if (empty($line1)) {
+    echo json_encode(["success" => false, "message" => "Address line 1 is required!"]);
+} else if ($cityId == 0) {
+    echo json_encode(["success" => false, "message" => "City is required!"]);
+} else {
+
+    try {
+
+        $updateUser = Database::iud(
+            "UPDATE `user` SET `fname`=?, `lname`=? WHERE `id`=?",
+            "ssi",
+            [$fname, $lname, $userId]
+        );
+
+        if (!$updateUser) {
+            throw new Exception("Falied to update user information");
+        }
+
+        //Get current user profile if exists
+        $profileCheck = Database::search(
+            "SELECT `user_id`, `address_id` FROM `user_profile` WHERE `user_id`=?",
+            "i",
+            [$userId]
+        );
+
+        if ($profileCheck && $profileCheck->num_rows > 0) {
+            $row = $profileCheck->fetch_assoc();
+            $userAddressId = $row["address_id"];
+            if ($userAddressId > 0) {
+                //Update existing address
+                $updateUserAddress = Database::iud(
+                    "UPDATE `address` SET `line1`=?, `line2`=?,`city_id`=? WHERE `id`=?",
+                    "ssii",
+                    [$line1, $line2, $cityId, $userAddressId]
+                );
+                if (!$updateUserAddress) {
+                    throw new Exception("Failed to update user address");
+                }
+            } else {
+                //Create new address
+                $insertAddress = Database::iud(
+                    "INSERT INTO `address` (`line1`,`line2`,`city_id`) VALUES (?,?,?)",
+                    "ssi",
+                    [$line1, $line2, $cityId]
+                );
+                if ($insertAddress) {
+                    $userAddressId = Database::getConnection()->insert_id;
+                }
+            }
+
+            //Update existing profile
+            $updateProfile = Database::iud(
+                "UPDATE `user_profile` SET `avatar_url`=?, `bio`=?, `gender_id`=?, `mobile`=?, `address_id`=? WHERE `user_id`=?",
+                "ssisii",
+                [$avatarUrl, $bio, $genderId, $mobile, $userAddressId, $userId]
+            );
+            if (!$updateProfile) {
+                throw new Exception("Failed to update profile information!");
+            }
+        } else {
+            //Create a new user profile if doesn't exists 
+
+            $addressId = 0;
+
+            if (!empty($line1) || !empty($line2) || $cityId > 0) {
+                if ($cityId > 0) {
+                    $insertAddress = Database::iud(
+                        "INSERT INTO `address` (`line1`,`line2`,`city_id`) VALUES (?,?,?)",
+                        "ssi",
+                        [$line1, $line2, $cityId]
+                    );
+                    if ($insertAddress) {
+                        $addressId = Database::getConnection()->insert_id;
+                    }
+                }
+            }
+
+            //Insert new user profile
+            $insertProfile = Database::iud(
+                "INSERT INTO `user_profile` (`user_id`,`avatar_url`,`bio`,`gender_id`,`mobile`,`address_id`) VALUES (?,?,?,?,?,?)",
+                "issiii",
+                [$userId, $avatarUrl, $bio, $genderId, $mobile, $addressId]
+            );
+            if (!$insertProfile) {
+                throw new Exception("Failed to create profile information");
+            }
+        }
+
+        //Update session variables
+        $_SESSION["user_name"] = $fname . " " . $lname;
+
+        echo json_encode([
+            "success" => true,
+            "message" => "Profile updated successfully!"
+        ]);
+    } catch (Exception $e) {
+        echo json_encode([
+            "success" => false,
+            "message" => $e->getMessage()
+        ]);
+    }
+}

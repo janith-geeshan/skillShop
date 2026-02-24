@@ -10,6 +10,7 @@ if (!isset($_SESSION["logged_in"]) || $_SESSION["logged_in"] != true) {
 $loggedIn = isset($_SESSION["logged_in"]) ? $_SESSION["logged_in"] : false;
 $userName = isset($_SESSION["user_name"]) ? $_SESSION["user_name"] : "";
 $userRole = isset($_SESSION["active_account_type"]) ? $_SESSION["active_account_type"] : "";
+$userID = isset($_SESSION["user_id"]) ? $_SESSION["user_id"] : "";
 
 ?>
 <!DOCTYPE html>
@@ -56,7 +57,6 @@ $userRole = isset($_SESSION["active_account_type"]) ? $_SESSION["active_account_
                     <div class="relative group hidden sm:block">
                         <button class="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200">
                             🔔
-
                             <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                         </button>
 
