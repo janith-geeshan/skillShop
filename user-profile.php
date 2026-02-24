@@ -83,7 +83,7 @@ $profileMsg = isset($_GET["msg"]) ? $_GET["msg"] : "";
         <!-- Page header -->
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900">My Profile</h1>
-            <p class="text-gray-600 mt-2">Update your profile informationnn</p>
+            <p class="text-gray-600 mt-2">Update your profile information</p>
         </div>
 
         <!-- Success Error msg -->
