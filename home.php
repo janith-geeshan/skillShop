@@ -16,8 +16,7 @@ $productResult = Database::search("SELECT
                                     FROM `product` p 
                                     JOIN `user` u ON p.`seller_id` = u.`id`
                                     LEFT JOIN `feedback` f ON p.`id` = f.`product_id`
-                                    GROUP BY p.`id`
-                                    LIMIT 6");
+                                    GROUP BY p.`id`");
 
 $products = [];
 if ($productResult && $productResult->num_rows > 0) {
@@ -414,10 +413,6 @@ $totalRevenue = ($ordersStatusResult && $row = $ordersStatusResult->fetch_assoc(
     var totalItems = <?php echo count($products) ?>;
     var maxSlides = Math.ceil(totalItems / itemsPreView) - 1;
 
-    var currentSlide = 0;
-    var itemsPerView = window.innerWidth >= 768 ? 3 : 1;
-    var totalItems = 6;
-    var maxSlides = Math.ceil(totalItems / itemsPerView) - 1;
 
     function slideCarousel(direction) {
         currentSlide += direction;
