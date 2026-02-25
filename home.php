@@ -91,20 +91,24 @@ $totalRevenue = ($ordersStatusResult && $row = $ordersStatusResult->fetch_assoc(
 
                         <?php if ($userRole == "buyer"): ?>
                             <a href="buyer-dashboard.php"
-                                class="bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover: shadow-lg inline-block transition-all">Go
-                                to Dashboard</a>
+                                class="bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover: shadow-lg inline-block transition-all">
+                                Go to Dashboard
+                            </a>
                             <a href="#browse"
-                                class="border-2 border-white text-white px-6 py-3 rounded-lg font-bold hover:bg-white hover:bg-opacity-10 inline-block transition-all">Browse
-                                Skills</a>
+                                class="border-2 border-white text-white px-6 py-3 rounded-lg font-bold hover:bg-white hover:bg-opacity-10 inline-block transition-all">
+                                Browse Skills
+                            </a>
                         <?php endif; ?>
 
                         <?php if ($userRole == "seller"): ?>
                             <a href="seller-dashboard.php"
-                                class="bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover: shadow-lg inline-block transition-all">Go
-                                to Dashboard</a>
-                            <a href="#"
-                                class="border-2 border-white text-white px-6 py-3 rounded-lg font-bold hover:bg-white hover:bg-opacity-10 inline-block transition-all">Create
-                                skills</a>
+                                class="bg-white text-blue-600 px-6 py-3 rounded-lg font-bold hover: shadow-lg inline-block transition-all">
+                                Go to Dashboard
+                            </a>
+                            <a href="productRegister.php"
+                                class="border-2 border-white text-white px-6 py-3 rounded-lg font-bold hover:bg-white hover:bg-opacity-10 inline-block transition-all">
+                                Create skills
+                            </a>
                         <?php endif; ?>
 
                     <?php else: ?>
@@ -188,89 +192,7 @@ $totalRevenue = ($ordersStatusResult && $row = $ordersStatusResult->fetch_assoc(
                         </div>
                     </div>
                 <?php endif; ?>
-                <div class="carousel-item flex-shrink-0 w-full md:w-1/3 px-3 pb-4">
-                    <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all h-full">
-                        <img src="assets/images/cover1.jpg" class="w-full h-40 object-cover" />
-                        <div class="p-5">
-                            <h3 class="font-bold text-lg mb-2">UI/UX Design Mastery</h3>
-                            <p class="text-gray-600 text-sm mb-4">Learn modern design principles</p>
-                            <div class="flex justify-between items-center">
-                                <span class="text-blue-600 font-bold">Rs. 24999.00</span>
-                                <span class="text-yellow-400">⭐ 4.9 (265)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="carousel-item flex-shrink-0 w-full md:w-1/3 px-3 pb-4">
-                    <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all h-full">
-                        <img src="assets/images/cover2.jpg" class="w-full h-40 object-cover" />
-                        <div class="p-5">
-                            <h3 class="font-bold text-lg mb-2">Mobile App Development</h3>
-                            <p class="text-gray-600 text-sm mb-4">Build iOS & Android apps</p>
-                            <div class="flex justify-between items-center">
-                                <span class="text-blue-600 font-bold">Rs. 85999.00</span>
-                                <span class="text-yellow-400">⭐ 4.1 (325)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="carousel-item flex-shrink-0 w-full md:w-1/3 px-3 pb-4">
-                    <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all h-full">
-                        <img src="assets/images/cover3.jpg" class="w-full h-40 object-cover" />
-                        <div class="p-5">
-                            <h3 class="font-bold text-lg mb-2">UI/UX Design Mastery</h3>
-                            <p class="text-gray-600 text-sm mb-4">Learn modern design principles</p>
-                            <div class="flex justify-between items-center">
-                                <span class="text-blue-600 font-bold">Rs. 24999.00</span>
-                                <span class="text-yellow-400">⭐ 4.9 (265)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="carousel-item flex-shrink-0 w-full md:w-1/3 px-3 pb-4">
-                    <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all h-full">
-                        <img src="assets/images/cover1.jpg" class="w-full h-40 object-cover" />
-                        <div class="p-5">
-                            <h3 class="font-bold text-lg mb-2">UI/UX Design Mastery</h3>
-                            <p class="text-gray-600 text-sm mb-4">Learn modern design principles</p>
-                            <div class="flex justify-between items-center">
-                                <span class="text-blue-600 font-bold">Rs. 24999.00</span>
-                                <span class="text-yellow-400">⭐ 4.9 (265)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="carousel-item flex-shrink-0 w-full md:w-1/3 px-3 pb-4">
-                    <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all h-full">
-                        <img src="assets/images/cover1.jpg" class="w-full h-40 object-cover" />
-                        <div class="p-5">
-                            <h3 class="font-bold text-lg mb-2">UI/UX Design Mastery</h3>
-                            <p class="text-gray-600 text-sm mb-4">Learn modern design principles</p>
-                            <div class="flex justify-between items-center">
-                                <span class="text-blue-600 font-bold">Rs. 24999.00</span>
-                                <span class="text-yellow-400">⭐ 4.9 (265)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="carousel-item flex-shrink-0 w-full md:w-1/3 px-3 pb-4">
-                    <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all h-full">
-                        <img src="assets/images/cover1.jpg" class="w-full h-40 object-cover" />
-                        <div class="p-5">
-                            <h3 class="font-bold text-lg mb-2">UI/UX Design Mastery</h3>
-                            <p class="text-gray-600 text-sm mb-4">Learn modern design principles</p>
-                            <div class="flex justify-between items-center">
-                                <span class="text-blue-600 font-bold">Rs. 24999.00</span>
-                                <span class="text-yellow-400">⭐ 4.9 (265)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
             </div>
         </div>

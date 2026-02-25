@@ -1,8 +1,12 @@
 <?php
-session_start();
-require "db/connection.php";
 
+if (!isset($_SESSION)) {
+    session_start();
+}
 
+require_once "db/connection.php";
+
+// Check remember me token available
 if (!isset($_SESSION["logged_in"]) || $_SESSION["logged_in"] != true) {
     require_once "process/authCheck.php";
 }
