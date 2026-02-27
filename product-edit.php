@@ -326,16 +326,17 @@ require "header.php";
             showError("Please select a level");
         } else if (status == 0) {
             showError("Please select a status.");
-        }  else {
+        } else {
 
             const formData = new FormData();
+            formData.append("productId", <?php echo $productId; ?>);
             formData.append("productTitle", productTitle);
             formData.append("description", description);
             formData.append("category", category);
             formData.append("price", price);
             formData.append("level", level);
             formData.append("status", status);
-            formData.append("image", image);
+            formData.append("productImage", image);
 
             try {
 
@@ -383,7 +384,7 @@ require "header.php";
     function resetMessage(element) {
         if (element) {
             setTimeout(() => {
-                window.location.href = "productRegister.php";
+                window.location.href = "product-edit.php?id=<?php echo $productId; ?>";
             }, 3000);
         }
     }
@@ -392,7 +393,7 @@ require "header.php";
     const alertBox = document.getElementById("alertBox");
     if (alertBox) {
         setTimeout(() => {
-            window.location.href = "productRegister.php";
+            window.location.href = "product-edit.php?id=<?php echo $productId; ?>";
         }, 3000);
     }
 </script>

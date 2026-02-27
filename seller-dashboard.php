@@ -99,9 +99,20 @@ $tab = isset($_GET["tab"]) ? $_GET["tab"] : "dashboard";
                                 <div class="flex gap-2">
                                     <a href="product-edit.php?id=<?php echo $product["id"]; ?>" class="px-3 py-1
                                 text-blue-600 text-sm hover:bg-blue-50 rounded">Edit</a>
-                                    <span class="px-3 py-1 bg-green-100 text-green-800 text-xs rounded font-medium">
-                                        <?php echo $product["status"]; ?>
-                                    </span>
+                                    <?php if ($product["status"] == "active") {
+                                    ?>
+                                        <span class="px-3 py-1 bg-green-100 text-green-800 text-xs rounded font-medium">
+                                            <?php echo $product["status"]; ?>
+                                        </span>
+                                    <?php
+                                    } else {
+                                    ?>
+                                        <span class="px-3 py-1 bg-red-100 text-red-800 text-xs rounded font-medium">
+                                            <?php echo $product["status"]; ?>
+                                        </span>
+                                    <?php
+                                    } ?>
+
                                 </div>
                             </div>
                         <?php endforeach; ?>
