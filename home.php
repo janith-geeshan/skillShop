@@ -4,19 +4,26 @@ include "header.php";
 
 // Get featured products
 
-$productResult = Database::search("SELECT 
+$productResult = Database::search(
+    "SELECT 
                                         p.`id`,
                                         p.`title`,
                                         p.`description`,
                                         p.`price`,
                                         p.`image_url`, 
+                                        p.`status`,
                                         u.`fname`,
                                         COUNT(f.`id`) AS `review_count`,
                                         COALESCE(AVG(f.`rating`),0) AS `avg_rating`
                                     FROM `product` p 
                                     JOIN `user` u ON p.`seller_id` = u.`id`
                                     LEFT JOIN `feedback` f ON p.`id` = f.`product_id`
-                                    GROUP BY p.`id`");
+                                    WHERE p.`status` = ?
+                                    GROUP BY p.`id`
+                                    LIMIT 9",
+    "s",
+    ["active"]
+);
 
 $products = [];
 if ($productResult && $productResult->num_rows > 0) {
