@@ -173,8 +173,8 @@ $totalRevenue = ($ordersStatusResult && $row = $ordersStatusResult->fetch_assoc(
                 <?php if (count($products) > 0): ?>
                     <?php foreach ($products as $product): ?>
                         <div class="carousel-item flex-shrink-0 w-full md:w-1/3 px-3 pb-4">
-                            <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all h-full">
-                                <img src="<?php echo $product["image_url"]; ?>" class="w-full h-40 object-cover" />
+                            <div class="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all h-full" onclick="window.location='product-view.php?id=<?php echo $product['id'] ?>'">
+                                <img src="<?php echo $product["image_url"]; ?>" class="w-full h-40 object-cover"/>
                                 <div class="p-5">
                                     <h3 class="font-bold text-lg mb-2"><?php echo $product["title"]; ?></h3>
                                     <p class="text-gray-600 text-sm mb-4"><?php echo $product["description"]; ?></p>

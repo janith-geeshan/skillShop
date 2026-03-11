@@ -40,16 +40,19 @@ $userID = isset($_SESSION["user_id"]) ? $_SESSION["user_id"] : "";
          hover:opacity-80 transition-opacity flex-shrink-0">SkillShop</a>
 
             <!-- Search Bar -->
-            <div class="hidden md:flex flex-1 max-w-lg">
-                <div class="relative w-full">
-                    <input type="text" placeholder="Search, skills, instructors..." class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200
+            <div class="hidden md:flex flex-1 max-w-lg items-center gap-2">
+                <form method="GET" action="search-products.php" class="relative flex-1">
+                    <input type="text" name="q" placeholder="Search, skills, instructors..." class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200
                 rounded-lg focus:outline-none focus:ring-2 focus:ring:blue-500 focus:border-transparent text-sm text-gray-900 
                 placeholder-gray-500 transition-all" />
 
-                    <button class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors">
+                    <button
+                        type="submit"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-600 transition-colors">
                         🔎
                     </button>
-                </div>
+                </form>
+                <a href="advance-search-products.php" class="px-4 py-2 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm font-medium">Advanced Search</a>
             </div>
 
             <!-- Right Section -->
@@ -103,8 +106,8 @@ $userID = isset($_SESSION["user_id"]) ? $_SESSION["user_id"] : "";
                             <span class="absolute top-1 right-1 text-xs bg-blue-600 text-white w-5 h-5 rounded-full 
                             flex items-center justify-center font-bold text-xs">2</span>
                         </a>
-                        <a href="buyer-dashboard.php?tab=learning" class="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50
-                            rounded-lg transition-colors duration-200 hidden sm:block">
+                        <a href="watchlist.php" class="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50
+                            rounded-lg transition-colors duration-200 hidden sm:block" title="Watchlist"> 
                             ♥️
                         </a>
                     <?php endif; ?>
@@ -131,11 +134,13 @@ $userID = isset($_SESSION["user_id"]) ? $_SESSION["user_id"] : "";
                                 <a href="<?php echo $userRole == "buyer" ? "buyer-dashboard.php" : "seller-dashboard.php"; ?>"
                                     class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 
                                 transition-colors duration-150">📊 Dashboard</a>
-                                <a href="user-profile.php"
-                                    class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 
+                                <?php if ($userRole == "buyer"): ?>
+                                    <a href="watchlist.php" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 
+                                    transition-colors duration-150">💌 Watchlist</a>
+                                <?php endif; ?>
+                                <a href="user-profile.php" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 
                                 transition-colors duration-150">👤 My Profile</a>
-                                <a href="process/logoutProcess.php"
-                                    class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 
+                                <a href="process/logoutProcess.php" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 
                                 transition-colors duration-150">🚪Sign Out</a>
                             </div>
                         </div>
