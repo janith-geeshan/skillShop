@@ -16,6 +16,12 @@ $userName = isset($_SESSION["user_name"]) ? $_SESSION["user_name"] : "";
 $userRole = isset($_SESSION["active_account_type"]) ? $_SESSION["active_account_type"] : "";
 $userID = isset($_SESSION["user_id"]) ? $_SESSION["user_id"] : "";
 
+$cartCount = 0;
+if ($loggedIn && $userRole == "buyer") {
+    $ccQ = Database::search("SELECT COUNT(*) AS `c` FROM `cart` WHERE `user_id`=?", "i", [$userID]);
+    $cartCount = $ccQ ? $ccQ->fetch_assoc()["c"] : 0;
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -103,11 +109,16 @@ $userID = isset($_SESSION["user_id"]) ? $_SESSION["user_id"] : "";
                         <a href="buyer-dashboard.php?tab=cart" class="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50
                             rounded-lg transition-colors duration-200 hidden sm:block">
                             🛒
-                            <span class="absolute top-1 right-1 text-xs bg-blue-600 text-white w-5 h-5 rounded-full 
-                            flex items-center justify-center font-bold text-xs">2</span>
+                            <?php if ($cartCount > 0): ?>
+                                <span id="cart-count" class="absolute top-1 right-1 text-xs bg-blue-600 text-white w-5 h-5 rounded-full 
+                            flex items-center justify-center font-bold text-xs"><?= $cartCount; ?></span>
+                            <?php else: ?>
+                                <span id="cart-count" class="absolute top-1 right-1 text-xs bg-blue-600 text-white w-5 h-5 rounded-full 
+                            flex items-center justify-center font-bold text-xs">0</span>
+                            <?php endif; ?>
                         </a>
                         <a href="watchlist.php" class="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50
-                            rounded-lg transition-colors duration-200 hidden sm:block" title="Watchlist"> 
+                            rounded-lg transition-colors duration-200 hidden sm:block" title="Watchlist">
                             ♥️
                         </a>
                     <?php endif; ?>

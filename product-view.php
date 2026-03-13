@@ -74,10 +74,10 @@ WHERE p.`seller_id` =? AND p.`status` ='active'",
 // Related
 $relQ = Database::search(
     "SELECT p.`id`,p.`title`,p.`image_url`,p.`price`,p.`level`,AVG(COALESCE(f.`rating`,0)) `ar` FROM 
-    `product` p LEFT JOIN `feedback` f ON p.`id`=f.`product_id` WHERE p.`seller_id`=? AND p.`id`=? AND p.`status`='active'
+    `product` p LEFT JOIN `feedback` f ON p.`id`=f.`product_id` WHERE p.`seller_id`=? AND p.`status`='active'
     GROUP BY p.`id` LIMIT 3",
-    "ii",
-    [$p["sid"], $productId]
+    "i",
+    [$p["sid"]]
 );
 
 $related = [];
@@ -101,7 +101,7 @@ if ($loggedIn && $userID) {
 $inCart = false;
 if ($loggedIn && $userID) {
     $cq = Database::search("SELECT `id` FROM `cart` WHERE `product_id`=? AND `user_id`=? LIMIT 1", "ii", [$productId, $userID]);
-    $inCart = $cq && $wq->num_rows > 0;
+    $inCart = $cq && $cq->num_rows > 0;
 }
 
 $sellerName = $p["fname"] . " " . $p["lname"];
@@ -291,15 +291,14 @@ require "header.php";
 
                                 <!-- Cart / Watchlist -->
                                 <div class="flex gap-2 mb-4 justify-between">
-                                    <button class="flex 1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2
-                                    font-semibold text-sm transition-all border-slate-200 text-slate-600 hover:border-blue-400
-                                    hover: text-blue-600"> <span id="cart-text">🛒 - Add to Cart</span>
-                                    </button>
+                                    <button id="cart-btn" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2 font-semibold text-sm transition-all ${inC ? " border-blue-400 text-blue-600 bg-blue-50" data-product-id="<?= $productId; ?>" data-in="<?= $inCart ? 1 : 0; ?>">
+                                        <span id="cart-text"><?= $inCart ? "🛒 In Cart" : "🛒 Add to Cart"; ?></span></button>
+
                                     <button id="wl-btn" class="flex 1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2
                                     font-semibold text-sm transition-all border-slate-200 text-slate-600 hover:border-rose-400
                                     hover: text-rose-600" data-product-id="<?= $productId; ?>" data-in="<?= $inWatchlist ? 1 : 0; ?>">
-                                    <?= $inWatchlist ? "♥︎" : "♡" ?>
-                                     <span id="wl-text"><?= $inWatchlist ? "In Watchlist" : "Watchlist"; ?></span>
+                                        <?= $inWatchlist ? "♥︎" : "♡" ?>
+                                        <span id="wl-text"><?= $inWatchlist ? "In Watchlist" : "Watchlist"; ?></span>
                                     </button>
                                 </div>
                             <?php elseif (!$loggedIn): ?>
@@ -310,15 +309,14 @@ require "header.php";
 
                                 <!-- Cart / Watchlist -->
                                 <div class="flex gap-2 mb-4 justify-between">
-                                    <button class="flex 1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2
-                                    font-semibold text-sm transition-all border-slate-200 text-slate-600 hover:border-blue-400
-                                    hover: text-blue-600"> <span id="cart-text">🛒 - Add to Cart</span>
-                                    </button>
+                                    <button id="cart-btn" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2 font-semibold text-sm transition-all ${inC ? " border-blue-400 text-blue-600 bg-blue-50" data-product-id="<?= $productId; ?>" data-in="<?= $inCart ? 1 : 0; ?>">
+                                        <span id="cart-text"><?= $inCart ? "🛒 In Cart" : "🛒 Add to Cart"; ?></span></button>
+
                                     <button id="wl-btn" class="flex 1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2
                                     font-semibold text-sm transition-all border-slate-200 text-slate-600 hover:border-rose-400
                                     hover: text-rose-600" data-product-id="<?= $productId; ?>" data-in="<?= $inWatchlist ? 1 : 0; ?>">
-                                    <?= $inWatchlist ? "♥︎" : "♡" ?>
-                                     <span id="wl-text"><?= $inWatchlist ? "In Watchlist" : "Watchlist"; ?></span>
+                                        <?= $inWatchlist ? "♥︎" : "♡" ?>
+                                        <span id="wl-text"><?= $inWatchlist ? "In Watchlist" : "Watchlist"; ?></span>
                                     </button>
                                 </div>
                             <?php else: ?>
@@ -427,10 +425,54 @@ require "header.php";
                 const j = await r.json();
                 if (j.success) {
 
-                const inW = j.action == "added";
-                wl.dataset.in = inW ? 1 : 0;
-                wl.querySelector("#wl-text").textContent = inW ? "In Watchlist" : "Watchlist";
-                if(wl.firstChild) wl.firstChild.textContent = (inW ? "♥︎" : "♡") + ' ';
+                    const inW = j.action == "added";
+                    wl.dataset.in = inW ? 1 : 0;
+                    wl.querySelector("#wl-text").textContent = inW ? "In Watchlist" : "Watchlist";
+                    if (wl.firstChild) wl.firstChild.textContent = (inW ? "♥︎" : "♡") + ' ';
+
+                }
+
+            } catch (_) {}
+        });
+    })();
+
+    (function() {
+        const ct = document.getElementById("cart-btn");
+        if (!ct || !ct.dataset.productId) return;
+
+        ct.addEventListener("click", async (e) => {
+
+            e.preventDefault();
+            const id = ct.dataset.productId;
+            if (!id) return;
+
+            const fd = new FormData();
+            fd.append("product_id", id);
+
+            try {
+                const r = await fetch("process/cartProcess.php", {
+                    method: "POST",
+                    body: fd
+                });
+
+                const j = await r.json();
+                if (j.success) {
+
+                    const inC = j.action == "added";
+                    ct.dataset.in = inC ? 1 : 0;
+
+                    document.getElementById("cart-text").textContent = inC ? "🛒 In Cart" : "🛒 Add to Cart";
+                    ct.className = `flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2 font-semibold text-sm transition-all ${inC ? "border-blue-400 text-blue-600 bg-blue-50" : "border-slate-200 text-slate-600 hover:border-blue-400 hover:text-blue-600"}`;
+
+                    // Update header
+                    const cc = document.getElementById("cart-count");
+                    if (cc) {
+                        let count = parseInt(cc.textContent) || 0;
+                        count = inC ? count + 1 : count - 1;
+                        cc.textContent = count;
+                        // cc.classList.toggle("hidden", count <= 0);
+                        // cc.classList.toggle("flex", count > 0);
+                    }
 
                 }
 
