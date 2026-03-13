@@ -46,8 +46,15 @@ $searcher = new ProductSearcher($userId);
 
 // count and fetch
 $totalProducts = $searcher->getCount($filters);
-$totalPages    = $totalProducts ? ceil($totalProducts / $itemsPerPage) : 0;
-$products       = $searcher->search($filters, $currentPage, $itemsPerPage);
+$totalPages = $totalProducts ? ceil($totalProducts / $itemsPerPage) : 0;
+$products = $searcher->search($filters, $currentPage, $itemsPerPage);
+
+$watchlistIds = [];
+if ($loggedIn && $userRole == "buyer" && $userId) {
+    $wq = Database::search("SELECT `product_id` FROM `watchlist` WHERE `user_id`=?", "i", [$userId]);
+    while ($row = $wq?->fetch_assoc()) $watchlistIds[$row["product_id"]] = true;
+}
+
 ?>
 
 
@@ -90,7 +97,7 @@ $products       = $searcher->search($filters, $currentPage, $itemsPerPage);
                             </svg>
                             Refine Results
                         </h2>
-                        
+
                         <button onclick="toggleFilters();" class="lg:hidden text-gray-400 hover:text-gray-600">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 18l18 6M6 6l12 12"></path>
@@ -255,6 +262,23 @@ $products       = $searcher->search($filters, $currentPage, $itemsPerPage);
                                             <?php echo htmlspecialchars($product["level"]); ?>
                                         </span>
                                     </div>
+                                    <?php if ($loggedIn && $userRole == "buyer"):
+                                        $inwl = isset($watchlistIds[$product["id"]]);
+                                    ?>
+                                        <button type="button" class="wl-heart absolute top-2.5 right-2.5 z-20 w-9 h-9 flex items-center justify-center rounded-full bg-white/90 shadow-md hover:scale-110 active:scale-95 transition-transform <?php $inwl ? "text-rose-500" : "text-gray-400 hover:text-rose-400"; ?>"
+                                            data-product-id="<?php echo $product["id"]; ?>"
+                                            data-in="<?php echo $inwl ? 1 : 0; ?>"
+                                            title="<?php echo $inwl ? "Remove the watchlist" : "Add to watchlist"; ?>">
+
+                                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd" />
+                                            </svg>
+
+                                        </button>
+
+                                    <?php endif; ?>
+                                    <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opactiy-0 
+                                    group-hover:opactiy-100 transition-opacity"></div>
                                 </div>
                                 <div class="p-5 flex flex-col flex-1">
                                     <div class="flex items-center gap-2 mb-2">
@@ -463,6 +487,43 @@ $products       = $searcher->search($filters, $currentPage, $itemsPerPage);
         updatePriceFormRange();
     });
 </script>
+
+<?php if ($loggedIn && $userRole == "buyer" && count($products) > 0): ?>
+    <script>
+        document.addEventListener("click", async (e) => {
+            const btn = e.target.closest(".wl-heart");
+            if (!btn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            const id = btn.dataset.productId;
+            if (!id) return;
+
+            const fd = new FormData();
+            fd.append("product_id", id);
+
+            try {
+                const r = await fetch("process/watchlistProcess.php", {
+                    method: "POST",
+                    body: fd
+                });
+
+                const j = await r.json();
+                if (j.success) {
+                    const inW = j.action == "added";
+                    btn.dataset.in = inW ? 1 : 0;
+                    btn.querySelector('svg').setAttribute('full', inW ? 'currentColor' : 'none');
+                    btn.classList.toggle("text-rose-500", inW);
+                    btn.classList.toggle("text-gray-400", !inW);
+                    btn.title = inW ? "Remove from Watchlist" : "Add to Watchlist";
+                }
+
+            } catch (_) {}
+        });
+    </script>
+
+<?php endif; ?>
 
 <?php
 

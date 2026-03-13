@@ -295,9 +295,11 @@ require "header.php";
                                     font-semibold text-sm transition-all border-slate-200 text-slate-600 hover:border-blue-400
                                     hover: text-blue-600"> <span id="cart-text">🛒 - Add to Cart</span>
                                     </button>
-                                    <button class="flex 1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2
+                                    <button id="wl-btn" class="flex 1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2
                                     font-semibold text-sm transition-all border-slate-200 text-slate-600 hover:border-rose-400
-                                    hover: text-rose-600"> <span id="wl-text">💌 - Watchlist</span>
+                                    hover: text-rose-600" data-product-id="<?= $productId; ?>" data-in="<?= $inWatchlist ? 1 : 0; ?>">
+                                    <?= $inWatchlist ? "♥︎" : "♡" ?>
+                                     <span id="wl-text"><?= $inWatchlist ? "In Watchlist" : "Watchlist"; ?></span>
                                     </button>
                                 </div>
                             <?php elseif (!$loggedIn): ?>
@@ -312,9 +314,11 @@ require "header.php";
                                     font-semibold text-sm transition-all border-slate-200 text-slate-600 hover:border-blue-400
                                     hover: text-blue-600"> <span id="cart-text">🛒 - Add to Cart</span>
                                     </button>
-                                    <button class="flex 1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2
+                                    <button id="wl-btn" class="flex 1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2
                                     font-semibold text-sm transition-all border-slate-200 text-slate-600 hover:border-rose-400
-                                    hover: text-rose-600"> <span id="wl-text">💌 - Watchlist</span>
+                                    hover: text-rose-600" data-product-id="<?= $productId; ?>" data-in="<?= $inWatchlist ? 1 : 0; ?>">
+                                    <?= $inWatchlist ? "♥︎" : "♡" ?>
+                                     <span id="wl-text"><?= $inWatchlist ? "In Watchlist" : "Watchlist"; ?></span>
                                     </button>
                                 </div>
                             <?php else: ?>
@@ -400,6 +404,39 @@ require "header.php";
     document.querySelectorAll('[data-star]').forEach(e => e.innerHTML = stars(+e.dataset.star));
     const avgEl = document.getElementById("avg-stars");
     if (avgEl) avgEl.innerHTML = stars(<?= round($avgR) ?>);
+
+    (function() {
+        const wl = document.getElementById("wl-btn");
+        if (!wl || !wl.dataset.productId) return;
+
+        wl.addEventListener("click", async (e) => {
+
+            e.preventDefault();
+            const id = wl.dataset.productId;
+            if (!id) return;
+
+            const fd = new FormData();
+            fd.append("product_id", id);
+
+            try {
+                const r = await fetch("process/watchlistProcess.php", {
+                    method: "POST",
+                    body: fd
+                });
+
+                const j = await r.json();
+                if (j.success) {
+
+                const inW = j.action == "added";
+                wl.dataset.in = inW ? 1 : 0;
+                wl.querySelector("#wl-text").textContent = inW ? "In Watchlist" : "Watchlist";
+                if(wl.firstChild) wl.firstChild.textContent = (inW ? "♥︎" : "♡") + ' ';
+
+                }
+
+            } catch (_) {}
+        });
+    })();
 </script>
 
 <?php require "footer.php"; ?>
