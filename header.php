@@ -126,7 +126,28 @@ if ($loggedIn && $userRole == "buyer") {
                     <!-- Profile Dropdown -->
                     <div class="relative ml-2 sm:ml-4 pl-2 sm:pl-4 border-1 border-gray-200">
                         <button class="flex items-center gap-2 hover:bg-gray-50 px-2 py-1 rounded-lg transition-colors duration-200" id="profileBtn">
-                            <img src="assets/images/avatar.png" class="w-8 h-8 rounded-full ring-2 ring-transparent hover:ring-blue-300 transition-all" />
+                            <?php
+
+                            $user_rs = Database::search(
+                                "SELECT * FROM `user_profile` WHERE `user_id`=?",
+                                "i",
+                                [$userID]
+                            );
+
+                            $user_data = $user_rs->fetch_assoc();
+
+                            if (!$user_data["avatar_url"] == null) {
+                            ?>
+                                <img src="<?= $user_data["avatar_url"]; ?>" class="w-8 h-8 rounded-full ring-2 ring-transparent hover:ring-blue-300 transition-all" />
+                            <?php
+                            } else {
+                            ?>
+                                <img src="assets/images/avatar.png" alt="profile_image" class="w-8 h-8 rounded-full ring-2 ring-transparent hover:ring-blue-300 transition-all" />
+                            <?php
+                            }
+
+                            ?>
+
                             <div class="hidden sm:block">
                                 <p class="text-sm font-semibold text-gray-900"><?php echo $userName; ?></p>
                                 <p class="text-xs text-gray-500 leading-none"><?php echo $userRole; ?></p>
