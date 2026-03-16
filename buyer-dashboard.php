@@ -59,6 +59,7 @@ if ($tab == "cart") {
 
 <div class="min-h-screen bg-gray-50">
 
+
     <!-- Tab Navigation -->
     <div class="bg-white border-b sticky top-16 z-40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex gap-8">
@@ -103,9 +104,18 @@ if ($tab == "cart") {
 
                         <?php foreach ($cartItems as $item):
                             $sellerName = $item["seller_fname"] . " " . $item["seller_lname"];
+                            $productData = [
+                                'title' => $item['title'],
+                                'seller' => $sellerName,
+                                'level' => $item['level'],
+                                'price' => $item['price'],
+                                'image' => $item['image_url'] ? $item['image_url'] : '',
+                                'description' => $item['description']
+                            ];
                         ?>
-                            <!-- Cart item -->
-                            <a href="product-view.php?id=<?= $item["id"]; ?>" id="cart-item-<?= $item["cart_item_id"] ?>" class="bg-white rounded-2xl border border-slate-100 p-4 flex gap-4 shadow-sm hover:shadow-md transition-shadow group">
+                            <!-- Cart Item -->
+                            <div onclick='openProductModal(<?= json_encode($productData) ?>);' id="cart-item-<?= $item["cart_item_id"] ?>"
+                                class="cursor-pointer bg-white rounded-2xl border border-slate-100 p-4 flex gap-4 shadow-sm hover:shadow-md transition-shadow group">
                                 <div class="w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100">
                                     <?php if ($item["image_url"]): ?>
                                         <img src="<?= $item["image_url"] ?>" class="w-full h-full object-cover">
@@ -120,7 +130,8 @@ if ($tab == "cart") {
                                             <h3 class="font-bold text-gray-900 leading-tight group-hover:text-blue-600 transition-colors line-clamp-1"><?= $item["title"] ?></h3>
                                             <p class="text-sm text-slate-500 mt-0.5"><?= $sellerName ?></p>
                                         </div>
-                                        <button onclick="removeItem(<?= $item['cart_item_id'] ?>, event);" class="text-slate-300 hover:text-rose-500 p-1 transition-colors" title="Remove">
+                                        <button onclick="removeItem(<?= $item['cart_item_id'] ?>, event);"
+                                            class="text-slate-300 hover:text-rose-500 p-1 transition-colors" title="Remove">
                                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
                                             </svg>
@@ -132,6 +143,7 @@ if ($tab == "cart") {
                                         <span class="text-lg font-extrabold text-blue-600 ml-auto">Rs.<?= number_format($item["price"], 2) ?></span>
                                     </div>
                                 </div>
+                            </div>
                             </a>
                         <?php endforeach; ?>
 
@@ -187,6 +199,65 @@ if ($tab == "cart") {
             <div class="bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 font-semibold">
                 <span id="toast-icon">✔</span>
                 <span id="toast-msg">Removed from cart</span>
+            </div>
+        </div>
+
+        <!--Product Modal-->
+        <div class="fixed inset-0 z-[100] hidden" id="productModal">
+
+            <!--Overlay-->
+            <div id="modalOverlay" class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm opacity-0 transition-opacity
+                    duration-300" onclick="closeProductModal();"></div>
+
+            <!--Modal Content-->
+            <div id="modalContent" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-11/12 max-w-4xl bg-white rounded-3xl
+                    shadow-2xl overflow-hidden flex flex-col md:flex-row transform scale-95 opacity-0 transition-all duration-200">
+
+                <!--Image Section-->
+                <div class="md:w-1/2 relative bg-slate-100 aspect-video md:aspect-auto">
+                    <img src="" class="w-full h-full object-cover hidden" id="modalImg" />
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"> </div>
+                    <div id="modalPlaceholder" class="w-full h-full flex items-center justify-center text-7xl">📚</div>
+                    <span id="modalLevel" class="absolute top-4 left-4 text-xs font-bold px-3 py-1 rounded-md bg-blue-600 text-white
+                     uppercase tracking-wider shadow-md">
+                        Beginner
+                    </span>
+                </div>
+
+                <!--Content Section-->
+                <div class="p-8 md:w-1/2 flex flex-col relative">
+
+                    <!---Close Button-->
+                    <button onclick="closeProductModal();" class="absolute top-5 right-5 text-slate-400 hover:text-slate-600
+                    bg-slate-100 hover:bg-slate-200 rounded-full  w-10 h-10 flex items-center justify-center transition-colors">
+                        ✖
+                    </button>
+
+                    <!---Title-->
+                    <h3 id="modalTitle" class="text-3xl font-extrabold text-gray-900 mb-3 leading-tight">
+                        Course Title
+                    </h3>
+
+                    <!---Seller-->
+                    <p id="modalSeller" class="text-sm text-slate-500 mb-6">
+                        By Seller Name
+                    </p>
+
+                    <!---Description-->
+                    <p id="modalDescription" class="text-base text-slate-700 mb-7 flex-1 overflow-y-auto max-h-56 leading-relaxed">
+                        Course description here.....
+                    </p>
+
+                    <!---Price-->
+                    <div class="mt-auto pt-6 flex items-center justify-between border-t border-slate-200">
+                        <div>
+                            <span class="text-xs text-slate-400 font-bold text-uppercase tracking-wider">Price</span>
+                            <P id="modalPrice" class="text-3xl font-black text-blue-600">Rs.0.00</P>
+                        </div>
+                    </div>
+
+
+                </div>
             </div>
         </div>
 
@@ -261,6 +332,58 @@ if ($tab == "cart") {
                         alert("Something went wrong! Try again..!");
                     }
                 }
+
+                //modal functions
+                function openProductModal(data) {
+                    const modal = document.getElementById("productModal");
+                    const overlay = document.getElementById("modalOverlay");
+                    const content = document.getElementById("modalContent");
+
+                    modal.classList.remove("hidden");
+                    document.body.style.overflow = "hidden";
+
+                    //animate in
+                    setTimeout(() => {
+                        overlay.classList.add("opacity-100");
+                        content.classList.add("opacity-100", "scale-100");
+                    }, 50);
+                
+
+                //fil content
+                document.getElementById("modalTitle").innerText = data.title;
+                document.getElementById("modalSeller").innerText = "By " + data.seller;
+                document.getElementById("modalLevel").innerText = data.level;
+                document.getElementById("modalPrice").innerText = "Rs. " + parseFloat(data.price).toLocaleString(undefined, {
+                    minimumFractionDigits: 2});
+                document.getElementById("modalDescription").innerText = data.description || "No description provided.";
+
+                    if(data.image) {
+                        const modalImg = document.getElementById("modalImg");
+                        modalImg.src = data.image;
+                        modalImg.classList.remove("hidden");
+                        document.getElementById("modalPlaceholder").classList.add("hidden");
+                    } else {
+                        document.getElementById("modalImg").classList.add("hidden");
+                        document.getElementById("modalPlaceholder").classList.remove("hidden");
+                    }
+                }
+
+
+                function closeProductModal() {
+                    const modal = document.getElementById("productModal");
+                    const overlay = document.getElementById("modalOverlay");
+                    const content = document.getElementById("modalContent");
+
+                    //Animate out
+                    overlay.classList.remove("opacity-100");
+                    content.classList.remove("opacity-100", "scale-100");
+
+                    setTimeout(() => {
+                        modal.classList.add("hidden");
+                        document.body.style.overflow = "";
+                    }, 300);
+                }
+
             </script>
         <?php endif; ?>
 
