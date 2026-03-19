@@ -173,7 +173,7 @@ if ($tab == "cart") {
                                         </div>
                                     </div>
 
-                                    <span class="font-bold text-gray-900">Rs. <span id="delivery"><?= number_format($deliveryFee, 2) ?></span></span>
+                                    <span class="font-bold text-gray-900">Rs. <span id="delivery"><?= number_format($totalDeliveryFee, 2) ?></span></span>
                                 </div>
                             </div>
 
@@ -183,7 +183,7 @@ if ($tab == "cart") {
                                     <span class="text-2xl font-black text-blue-600 font-mono">Rs. <span id="total"><?= number_format($total, 2) ?></span></span>
                                 </div>
 
-                                <button class="block w-full py-4 text-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-95 mb-2">Proceed to Checkout</button>
+                                <button onclick="checkout();" class="block w-full py-4 text-center bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all active:scale-95 mb-2">Proceed to Checkout</button>
                                 <p class="text-center text-xs text-slate-400">Secure Checkout powered by Payhere.</p>
                             </div>
 
@@ -263,6 +263,7 @@ if ($tab == "cart") {
 
         <!-- Cart JS -->
         <?php if (!empty($cartItems)): ?>
+            <script type="text/javascript" src="https://www.payhere.lk/lib/payhere.js"></script>
             <script>
                 let tid;
 
@@ -347,17 +348,18 @@ if ($tab == "cart") {
                         overlay.classList.add("opacity-100");
                         content.classList.add("opacity-100", "scale-100");
                     }, 50);
-                
 
-                //fil content
-                document.getElementById("modalTitle").innerText = data.title;
-                document.getElementById("modalSeller").innerText = "By " + data.seller;
-                document.getElementById("modalLevel").innerText = data.level;
-                document.getElementById("modalPrice").innerText = "Rs. " + parseFloat(data.price).toLocaleString(undefined, {
-                    minimumFractionDigits: 2});
-                document.getElementById("modalDescription").innerText = data.description || "No description provided.";
 
-                    if(data.image) {
+                    //fil content
+                    document.getElementById("modalTitle").innerText = data.title;
+                    document.getElementById("modalSeller").innerText = "By " + data.seller;
+                    document.getElementById("modalLevel").innerText = data.level;
+                    document.getElementById("modalPrice").innerText = "Rs. " + parseFloat(data.price).toLocaleString(undefined, {
+                        minimumFractionDigits: 2
+                    });
+                    document.getElementById("modalDescription").innerText = data.description || "No description provided.";
+
+                    if (data.image) {
                         const modalImg = document.getElementById("modalImg");
                         modalImg.src = data.image;
                         modalImg.classList.remove("hidden");
@@ -384,6 +386,57 @@ if ($tab == "cart") {
                     }, 300);
                 }
 
+                // Payhere Intergration
+                payhere.onCompleted = async function onCompleted(orderId) {
+                    try {
+
+                        const fd = new FormData();
+                        fd.append("order_id", orderId);
+
+                        const r = await fetch("process/saveInvoice.php", {
+                            method: "POST",
+                            body: fd
+                        });
+                        const data = await r.json();
+
+                        if (data.success) {
+                            window.location.href = "invoice.php?id=" + data.invoice_id;
+                        } else {
+                            alert("Payment successful. But failed to process internal order: " + data.message);
+                        }
+
+                    } catch (e) {
+                        alert("Error Saving Invoice");
+                    }
+                }
+
+                payhere.onDismissed = function onDismissed() {
+                    alert("Payment dismissed");
+                }
+
+                payhere.onError = function onError(error) {
+                    alert("Payment Error: " + error);
+                }
+
+                async function checkout() {
+                    try {
+
+                        const res = await fetch("process/payhereProcess.php", {
+                            method: "POST",
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            payhere.startPayment(data.payment);
+                        } else {
+                            alert(data.message || "Error generating payment details!");
+                        }
+
+                    } catch (e) {
+                        alert("Error connecting to checkout service!");
+                    }
+                }
+
+                
             </script>
         <?php endif; ?>
 
