@@ -71,6 +71,10 @@ if ($tab == "cart") {
             <a href="?tab=cart" class="py-4 font-medium border-b-2
             <?php echo $tab == "cart" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-600
             hover:text-gray-900"; ?>">Cart</a>
+
+            <a href="?tab=purchase-history" class="py-4 font-medium border-b-2
+            <?php echo $tab == "purchase-history" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-600
+            hover:text-gray-900"; ?>">Purchase History</a>
         </div>
     </div>
 
@@ -83,6 +87,8 @@ if ($tab == "cart") {
             </div>
         </section>
     <?php elseif ($tab == "cart"): ?>
+
+
         <section class="bg-white shadow-sm">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <h2 class="text-3xl font-bold text-gray-900">Shopping Cart</h2>
@@ -435,11 +441,208 @@ if ($tab == "cart") {
                         alert("Error connecting to checkout service!");
                     }
                 }
-
-                
             </script>
         <?php endif; ?>
 
+    <?php elseif ($tab == "purchase-history"):
+
+
+        $invoiceQ = Database::search("SELECT * FROM `invoice` WHERE `user_id`=? ORDER BY `date` DESC", "i", [$userID]);
+    ?>
+        <main class="max-w-7xl mx-auto px-4 lg:px-8 py-10">
+
+            <div class="mb-8">
+                <h1 class="text-3xl font-extrabold text-gray-900">Purchase History</h1>
+                <p class="text-gray-500 mt-2">View your past orders and share your feedback on the skills you've learned</p>
+            </div>
+
+            <?php if ($invoiceQ && $invoiceQ->num_rows > 0): ?>
+                <div class="space-y-6">
+                    <?php while ($invoice = $invoiceQ->fetch_assoc()): ?>
+                        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+                            <!-- Invoice Header -->
+                            <div class="px-6 py-4 gray-50/50 border-b border-gray-100 flex flex-wrap justify-between items-center gap-4">
+                                <div class="flex items-center gap-6">
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Date Placed</p>
+                                        <p class="text-sm font-semibold text-gray-900"><?= date("M d,Y", strtotime($invoice["date"])); ?></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Amount</p>
+                                        <p class="text-sm font-semibold text-gray-900">Rs. <?= number_format($invoice["total"], 2); ?></p>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider">Order ID</p>
+                                        <p class="text-sm font-semibold text-gray-900">#<?= $invoice["order_order_id"]; ?></p>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <a href="invoice.php?id=<?= $invoice["order_order_id"] ?>" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors shadow-sm">View Full Invoice</a>
+                                </div>
+                            </div>
+
+                            <div class="divide-y divide-gray-100">
+                                <?php
+
+                                $itemsQ = Database::search(
+                                    "SELECT ii.*, p.`title`, p.`image_url`, u.`fname` AS `seller_first`, u.`lname` AS 
+                            `seller_last`, (SELECT `id` FROM `feedback` WHERE `user_id`=? AND `product_id`=ii.
+                            `product_id` LIMIT 1) AS `feedback_id` 
+                            FROM `invoice_item` ii
+                            JOIN `product` p ON ii.`product_id`=p.`id`
+                            JOIN `user` u ON ii.`seller_id`=u.`id`
+                            WHERE ii.`invoice_id`=?",
+                                    "ii",
+                                    [$userID, $invoice["id"]]
+                                );
+
+                                while ($item = $itemsQ->fetch_assoc()):
+                                ?>
+                                    <a href="product-view.php?id=<?= $item["product_id"] ?>" class="p-6 flex flex-col md:flex-row gap-6 items-start md:items-center hover:bg-blue-200 transition-colors">
+                                        <div class="w-full md:w-32 h-20 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0">
+                                            <?php if ($item["image_url"]): ?>
+                                                <img src="<?= $item["image_url"]; ?>" class="w-full h-full object-cover" />
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="flex-grow">
+                                            <h3 class="text-lg font-bold text-gray-900"><?= $item["title"]; ?></h3>
+                                            <p class="text-sm text-gray-500 mt-1">Sold by <span class="font-medium text-gray-700"><?= $item["seller_first"] . " " . $item["seller_last"]; ?></span></p>
+                                            <p class="text-sm font-bold text-blue-600 mt-2">Rs. <?= number_format($item["price"], 2); ?></p>
+                                        </div>
+
+                                        <div class="flex-shrink-0 w-full md:w-auto">
+                                            <?php if ($item["feedback_id"]): ?>
+                                                <span class="inline-flex items-center gap-1 text-green-600 font-bold text-sm bg-green-50 px-4 py-2 rounded-xl">
+                                                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414 1.414l2 2a1 1 0 001.414 0l4-4z"></path>
+                                                    </svg>
+                                                    Feedback Submitted
+                                                </span>
+                                            <?php else: ?>
+                                                <button onclick="openFeedbackModal(<?= $item['product_id'] ?>, '<?= addslashes($item['title']) ?>', event)"
+                                                    class="w-full md:w-auto px-6 py-2.5 bg-gray-900 text-white font-bold rounded-xl shadow-sm hover:bg-black transition-all text-sm">
+                                                    Give Feedback
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </a>
+                                <?php endwhile; ?>
+                            </div>
+                        </div>
+                    <?php endwhile; ?>
+                </div>
+
+            <?php else: ?>
+                <div class="bg-white rounded-3xl p-12 text-center border-2 border-dashed border-gray-100">
+                    <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 text-3xl"></div>
+                    <h3 class="text-xl font-bold text-gray-900">No Purchase Yet</h3>
+                    <p class="text-gray-500 mt-2 max-w-sm mx-auto">Explore our wide range of skills and start your learning journey today.</p>
+                    <a href="index.php" class="inline-block mt-8 px-8 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">Start Shopping</a>
+                </div>
+            <?php endif; ?>
+
+        </main>
+
+        <!-- Feedback Modal -->
+        <div id="feedback-modal" class="fixed inset-0 z-[100] hidden">
+            <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeFeedbackModal();"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md p-4">
+                <div class="bg-white rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-300">
+                    <div class="p-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-1">Give Feedback</h2>
+                        <p id="modal-product-title" class="text-blue-600 font-medium text-sm mb-6"></p>
+
+                        <form id="feedback-form" onsubmit="submitFeedback(event);">
+                            <input type="hidden" id="modal-product-id">
+
+                            <div class="mb-6">
+                                <label class="block text-sm font-bold text-gray-700 mb-3">Rating</label>
+                                <div class="flex gap-2">
+                                    <?php for ($i = 1; $i <= 5; $i++): ?>
+                                        <button type="button" onclick="setRating(<?= $i ?>);" class="rating-star text-3xl text-gray-300 hover:text-yellow-400 transition-colors" data-value="<?= $i ?>">
+                                            ★
+                                        </button>
+                                    <?php endfor; ?>
+                                    <input type="hidden" id="modal-rating" value="5" />
+                                </div>
+                            </div>
+
+                            <div class="mb-8">
+                                <label for="modal-message" class="block text-sm font-bold text-gray-700 mb-2">Your Experience</label>
+                                <textarea id="modal-message" rows="4" required placeholder="Share your thoughts about this skill..." class="w-full px-4 py-3 rounded-2xl bg-gray-50 border-transparent focus:bg-white focus:border-blue-500 focus:ring-4 focus:ring-blue-100 transition-all outline-none text-gray-700 resize-none"></textarea>
+                            </div>
+
+                            <div class="flex gap-4">
+                                <button type="button" onclick="closeFeedbackModal();" class="flex-1 px-6 py-3 border border-gray-200 text-gray-600 font-bold rounded-2xl hover:bg-gray-50 transition-all">Cancel</button>
+                                <button type="submit" class="flex-1 px-6 py-3 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transiton-all shadow-lg shadow-blue-200">Submit</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function setRating(val) {
+                document.getElementById("modal-rating").value = val;
+                const stars = document.querySelectorAll(".rating-star");
+                stars.forEach(s => {
+                    if (parseInt(s.dataset.value) <= val) {
+                        s.classList.remove("text-gray-300");
+                        s.classList.add("text-yellow-400");
+                    } else {
+                        s.classList.remove("text-yellow-400");
+                        s.classList.add("text-gray-300");
+                    }
+                });
+            }
+
+            function openFeedbackModal(pid, title, e) {
+                e.preventDefault();
+                // preventDefault එකෙන් කරන්නෙ product View එකට යන එක නවත්තන එක 
+                document.getElementById("modal-product-id").value = pid;
+                document.getElementById("modal-product-title").innerText = title;
+                document.getElementById("modal-message").value = "";
+                setRating(5);
+                document.getElementById("feedback-modal").classList.remove("hidden");
+            }
+
+            function closeFeedbackModal() {
+                document.getElementById("feedback-modal").classList.add("hidden");
+            }
+
+            async function submitFeedback(e) {
+                e.preventDefault();
+                const pid = document.getElementById("modal-product-id").value;
+                const rating = document.getElementById("modal-rating").value;
+                const msg = document.getElementById("modal-message").value;
+
+                const fd = new FormData();
+                fd.append("pid", pid);
+                fd.append("rating", rating);
+                fd.append("message", msg);
+
+                try {
+                    const res = await fetch("process/saveFeedback.php", {
+                        method: "POST",
+                        body: fd
+                    });
+
+                    const data = await res.json();
+
+                    if (data.success) {
+                        alert("Thank you for your feedback!");
+                        location.reload();
+                    } else {
+                        alert(data.message || "Failed to save Feedback!");
+                    }
+                } catch (err) {
+                    alert("Error submitting feedback!");
+                }
+            }
+        </script>
     <?php endif; ?>
 </div>
 
