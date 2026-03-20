@@ -99,7 +99,7 @@ $itemsQ = Database::search(
                 </div>
                 <div class="mt-6 md:mt-0 text-left md:text-right">
                     <h2 class="text-3xl font-bold text-gray-900 mb-1">INVOICE</h2>
-                    <p class="font-mono text-gray-600 font-semibold">#<?= $invoice["order_id"]; ?></p>
+                    <p class="font-mono text-gray-600 font-semibold">#<?= $invoice["order_order_id"]; ?></p>
                     <p class="text-sm text-gray-500 mt-1">Date: <?= date("M D,Y", strtotime($invoice["date"])) ?></P>
                 </div>
             </div>
