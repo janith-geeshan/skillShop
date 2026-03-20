@@ -167,6 +167,7 @@ if ($loggedIn && $userRole == "buyer") {
                                     class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 
                                 transition-colors duration-150">📊 Dashboard</a>
                                 <?php if ($userRole == "buyer"): ?>
+                                    <a href="buyer-dashboard.php?tab=purchase-history" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-150" title="Purchase History">📜 Purchase History</a>
                                     <a href="watchlist.php" class="block px-4 py-2.5 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 
                                     transition-colors duration-150">💌 Watchlist</a>
                                 <?php endif; ?>

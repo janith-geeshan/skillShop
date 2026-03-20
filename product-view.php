@@ -154,7 +154,7 @@ require "header.php";
             <!-- Quick Stats -->
             <div class="flex flex-wrap items-center gap-5 text-sm text-slate-400">
                 <span class="flex items-center gap-1.5">
-                    <span class="text-yellow-400">⭐</span>
+                    <span class="text-yellow-400">★</span>
                     <strong class="text-white"><?= $avgR ?: "New" ?></strong>
                     <span>(<?= $revC ?>) reviews</span>
                 </span>
@@ -285,7 +285,7 @@ require "header.php";
                                 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all active:scale-95 
                                 shadow-md mb-3">Go to My Learnings</a>
                             <?php elseif ($loggedIn && $userRole == "buyer"): ?>
-                                <a href="#" class="block w-full py-3.5 text-center bg-gradient-to-r  from-blue-600 to-indigo-600 
+                                <a href="process/checkout.php?id=<?= $p["id"]; ?>" class="block w-full py-3.5 text-center bg-gradient-to-r  from-blue-600 to-indigo-600 
                                 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl transition-all active:scale-95 
                                 shadow-md mb-3">🎓 Enroll Now</a>
 
@@ -297,7 +297,7 @@ require "header.php";
                                     <button id="wl-btn" class="flex 1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2
                                     font-semibold text-sm transition-all border-slate-200 text-slate-600 hover:border-rose-400
                                     hover: text-rose-600" data-product-id="<?= $productId; ?>" data-in="<?= $inWatchlist ? 1 : 0; ?>">
-                                        <?= $inWatchlist ? "♥︎" : "♡" ?>
+                                        <?= $inWatchlist ? "❤︎" : "♡" ?>
                                         <span id="wl-text"><?= $inWatchlist ? "In Watchlist" : "Watchlist"; ?></span>
                                     </button>
                                 </div>
@@ -315,7 +315,7 @@ require "header.php";
                                     <button id="wl-btn" class="flex 1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border-2
                                     font-semibold text-sm transition-all border-slate-200 text-slate-600 hover:border-rose-400
                                     hover: text-rose-600" data-product-id="<?= $productId; ?>" data-in="<?= $inWatchlist ? 1 : 0; ?>">
-                                        <?= $inWatchlist ? "♥︎" : "♡" ?>
+                                        <?= $inWatchlist ? "❤︎" : "♡" ?>
                                         <span id="wl-text"><?= $inWatchlist ? "In Watchlist" : "Watchlist"; ?></span>
                                     </button>
                                 </div>
@@ -397,7 +397,7 @@ require "header.php";
     function stars(n) {
         return Array.from({
             length: 5
-        }, (_, i) => `<span>${i<n?'⭐':'☆'}</span>`).join(' ');
+        }, (_, i) => `<span>${i<n?'★':'☆'}</span>`).join(' ');
     }
     document.querySelectorAll('[data-star]').forEach(e => e.innerHTML = stars(+e.dataset.star));
     const avgEl = document.getElementById("avg-stars");
@@ -428,7 +428,7 @@ require "header.php";
                     const inW = j.action == "added";
                     wl.dataset.in = inW ? 1 : 0;
                     wl.querySelector("#wl-text").textContent = inW ? "In Watchlist" : "Watchlist";
-                    if (wl.firstChild) wl.firstChild.textContent = (inW ? "♥︎" : "♡") + ' ';
+                    if (wl.firstChild) wl.firstChild.textContent = (inW ? "❤︎" : "♡") + ' ';
 
                 }
 
