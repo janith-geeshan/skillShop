@@ -45,7 +45,7 @@ $offset = ($currentPage - 1) * $itemsPerPage;
 $productsQuery = "SELECT p.`id`, p.`title`, p.`description`, p.`image_url`, p.`price`, p.`created_at`,
          p.`level`,
          u.`fname` AS `seller_name`, u.`id` AS `seller_id`,
-         COUNT(DISTINCT o.`id`) AS `customer_count`,
+         COUNT(DISTINCT o.`order_id`) AS `customer_count`,
          AVG(COALESCE(f.`rating`,0)) AS `avg_rating`,
          COUNT(DISTINCT f.`id`) AS `review_count`
   FROM `product` p 
