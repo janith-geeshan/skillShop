@@ -86,7 +86,7 @@ while ($r = $relQ?->fetch_assoc()) $related[] = $r;
 // Purchased
 $bought = false;
 if ($loggedIn && $userID) {
-    $bq = Database::search("SELECT `id` FROM `order` WHERE `product_id`=? AND `user_id`=? LIMIT 1", "ii", [$productId, $userID]);
+    $bq = Database::search("SELECT `order_id` FROM `order` WHERE `product_id`=? AND `user_id`=? LIMIT 1", "ii", [$productId, $userID]);
     $bought = $bq && $bq->num_rows > 0;
 }
 
