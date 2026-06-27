@@ -97,11 +97,28 @@ if ($loggedIn && $userRole == "buyer") {
                     </div>
 
                     <!-- Messages -->
+                    <?php
+                    $msgCount = 0;
+                    if ($loggedIn) {
+                        $mcQ = Database::search(
+                            "SELECT COUNT(*) AS `c` FROM `chat` WHERE `to_user_id` = ? AND `status` = 'unseen'",
+                            "i",
+                            [$userID]
+                        );
+                        $msgCount = $mcQ ? $mcQ->fetch_assoc()["c"] : 0;
+                    }
+                    ?>
                     <a href="<?php echo $userRole == "buyer" ?
-                                    "buyer-dashboard.php?tab-messages" :
-                                    "seller-dashboard.php?tab-messages"; ?>"
+                                    "buyer-dashboard.php?tab=messages" :
+                                    "seller-dashboard.php?tab=messages"; ?>"
                         class="relative p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200 hidden sm:block">
-                        💬<span class="absolute top-1 right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
+                        💬
+                        <?php if ($msgCount > 0): ?>
+                            <span id="msg-count" class="absolute top-1 right-1 text-[10px] bg-blue-600 text-white w-4 h-4 rounded-full flex items-center justify-center font-bold"><?= $msgCount; ?></span>
+                        <?php else: ?>
+                            <span id="msg-count" class="absolute top-1 right-1 text-[10px] bg-blue-600 text-white w-4 h-4 rounded-full flex items-center justify-center font-bold hidden">0</span>
+                        <?php endif; ?>
+
                     </a>
 
                     <!-- Cart/Watchlist for buyers -->
@@ -225,6 +242,32 @@ if ($loggedIn && $userRole == "buyer") {
 
                 });
             });
+        }
+
+        // Live Message Count Update
+        if (<?php echo $loggedIn ? 'true' : 'false'; ?>) {
+
+            setInterval(async () => {
+                
+                try {
+                    const res = await fetch("process/getUnseenMessageCount.php");
+                    const data = await res.json();
+                    const mc = document.getElementById(msg - count);
+
+                    if (mc) {
+                        mc.innerText = data.count;
+                        if (data.count > 0) {
+                            mc.classList.remove("hidden");
+                            mc.classList.add("flex");
+                        } else {
+                            mc.classList.remove("flex");
+                            mc.classList.add("hidden");
+                        }
+                    }
+                } catch (e) {
+
+                }
+            }, 5000);
         }
     </script>
 

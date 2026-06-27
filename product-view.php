@@ -376,7 +376,7 @@ require "header.php";
                         </div>
 
                         <?php if ($loggedIn && $userRole == "buyer"): ?>
-                            <a href="buyer-dashboard.php?tab=messages" class="block w-full py-2.5 text-center border-2 border-slate-200
+                            <a href="buyer-dashboard.php?tab=messages&other_id=<?= $p["sid"] ?>&other_name=<?= urlencode($sellerName); ?>" class="block w-full py-2.5 text-center border-2 border-slate-200
                             text-gray-200 hover:border-blue-400 hover:text-blue-600 font-semibold rounded-xl transition-all text-sm">
                                 💬 Message Instructor
                             </a>

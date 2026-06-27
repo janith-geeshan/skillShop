@@ -17,4 +17,3 @@ function togglePassword(inputId, btn) {
         btn.innerHTML = "👀";
     }
 }
-

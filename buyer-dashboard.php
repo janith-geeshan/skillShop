@@ -72,6 +72,10 @@ if ($tab == "cart") {
             <?php echo $tab == "cart" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-600
             hover:text-gray-900"; ?>">Cart</a>
 
+            <a href="?tab=messages" class="py-4 font-medium border-b-2
+            <?php echo $tab == "messages" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-600
+            hover:text-gray-900"; ?>">Messages</a>
+
             <a href="?tab=purchase-history" class="py-4 font-medium border-b-2
             <?php echo $tab == "purchase-history" ? "border-blue-600 text-blue-600" : "border-transparent text-gray-600
             hover:text-gray-900"; ?>">Purchase History</a>
@@ -444,9 +448,193 @@ if ($tab == "cart") {
             </script>
         <?php endif; ?>
 
+    <?php elseif ($tab == "messages"): ?>
+
+        <section class="bg-white shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <h2 class="text-3xl font-bold text-gray-900">Messages</h2>
+                <p class="text-gray-600">Chat with sellers and support</p>
+            </div>
+        </section>
+
+        <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div class="grid md:grid-cols-3 gap-6 h-[600px] border border-gray-100 rounded-3xl overflow-hidden shadow-sm bg-white">
+
+                <!-- Conversation List -->
+                <div class="flex flex-col border-r border-gray-100 h-[600px] overflow-hidden">
+                    <div class="p-6 border-b border-gray-100 flex-shrink-0">
+                        <input type="text" id="chatSearch" onkeyup="filterChats()" placeholder="Search..."
+                            class="w-full px-4 py-2.5 bg-gray-50 border-none rounded-xl text-sm focus:ring-4 focus:ring-blue-50/50 outline-none transition-all" />
+                    </div>
+                    <div id="chatList" class="overflow-y-auto flex-1 divide-y divide-gray-50 min-h-0">
+                        <!-- Loaded with JS -->
+                        <div class="p-8 text-center text-gray-400">Loading Chats...</div>
+                    </div>
+                </div>
+
+                <!-- Chat Area -->
+                <div class="md:col-span-2 flex flex-col bg-gray-50/30 h-[600px] overflow-hidden">
+                    <div id="chatHeader" class="p-6 border-b border-gray-100 bg-white flex justify-between items-center hidden flex-shrink-0">
+                        <div>
+                            <p id="chatWith" class="font-extrabold text-gray-900"></p>
+                            <p class="text-xs text-blue-600 font-bold uppercase tracking-wider">Active Chat</p>
+                        </div>
+                    </div>
+
+                    <div id="messageArea" class="overflow-y-auto flex-1 p-6 space-y-4 min-h-0">
+                        <div class="flex-1 flex flex-col items-center justify-center text-center p-12 opacity-50">
+                            <div class="text-5xl mb-4">💬</div>
+                            <h3 class="font-bold text-gray-900">Select a Conversation</h3>
+                            <p class="text-sm text-gray-500 mt-1">Choose a contact from the left to start messaging</p>
+                        </div>
+                    </div>
+
+                    <div id="chatInputArea" class="p-6 bg-white border-t border-gray-100 hidden flex-shrink-0">
+                        <form id="msgForm" onsubmit="sendMessage(event);" class="flex gap-4">
+                            <input type="hidden" id="activeToId" />
+                            <input type="text" id="msgContent" required placeholder="Type your message..." class="flex-1 px-5 py-3 bg-gray-50 border-none rounded-2xl text-sm focus:ring-4 focus:ring-blue-50/50 outline-none transition-all">
+                            <button type="submit" class="px-8 py-2 bg-gray-900 text-white font-bold rounded-2xl hover:bg-black transition-all shadow-lg active:scale-95">Send</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <script>
+            var activeotherId = null;
+
+            async function loadchatList() {
+                const res = await fetch("process/getchatList.php");
+                const chats = await res.json();
+                const list = document.getElementById("chatList");
+                list.innerHTML = chats.length ? '' : '<div class="p-8 text-center text-gray-400">No conversations found..!</div>';
+
+                chats.forEach(chat => {
+                    const div = document.createElement('div');
+                    div.className = `p-5 hover:bg-gray-50 cursor-pointer transition-all border-l-4 ${activeotherId == chat.id ? 'bg-blue-50/50 border-blue-600' : 'border-transparent'}`;
+                    div.onclick = () => selecChat(chat.id, chat.name);
+
+                    const unreadTrack = chat.unread_count > 0 ? `<span class="bg-blue-600 text-white text-[10px] px-1.5 py-0.5 rounded-full font-bold">${chat.unread_count}</span>` : '';
+
+                    div.innerHTML = `
+                        <div class="flex justify-between items-start">
+                        <div>
+                            <p class="font-bold text-gray-900 text-sm">${chat.name}</p>
+                            <p class="text-xs text-gray-500 truncate mt-1 max-w-[150px] font-medium">${chat.last_message || 'Start-chatting...'}</p>
+                        </div>
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase">${chat.time ? new Date(chat.time).
+                        toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : ''}</span>
+                        ${unreadTrack}
+                        </div>
+                        </div>
+                    `;
+                    list.appendChild(div);
+
+                });
+
+            }
+
+            async function selectChat(id, name) {
+                activeotherId = id;
+                document.getElementById("activeToId").value = id;
+                document.getElementById("chatWith").innerText = name;
+                document.getElementById("chatHeader").classList.remove("hidden");
+                document.getElementById("chatInputArea").classList.remove("hidden");
+                loadMessages();
+                loadChatList();
+
+                if (window.chatInterval) clearInterval(window.chatInterval);
+                window.chatInterval = setInterval(loadMessages, 3000);
+            }
+
+            async function loadMessages() {
+                if (!activeotherId) return;
+                const res = await fetch(`process/loadMessages.php?other_id=${activeotherId}`);
+                const msgs = await res.json();
+                const area = document.getElementById("messageArea");
+
+                var html = ' ';
+
+                msgs.forEach(m => {
+                    const side = m.side == 'right' ? 'justify-end' : 'justify-start';
+                    const color = m.side == 'right' ? 'bg-gray-900 text-white rounded-tr-none' : 'bg-white border border-gray-100 text-gray-800 rounded-tl-none';
+
+                    var seenHtml = '';
+                    if (m.side == 'right') {
+                        if (status == 'seen') {
+                            seenHtml = '<span class="ml-2 text-blue-400 font-bold">✔✔</span>'
+                        } else {
+                            seenHtml = '<span class="ml-2 text-gray-400 font-bold">✔</span>'
+                        }
+                    }
+
+                    html += `
+                    <div class="flex ${side}">
+                    <div class="${color} px-5 py-3 rounded-2xl max-w-[85%] shadow-sm relative group">
+                    <p class="text-sm leading-relaxed">${m.content}</p>
+                    <div class="flex justify-between items-center mt-1">
+                    <p class="text-[10px] opacity-50 font-bold">${new Date(m.time).toLocaleDateString([],{hour:'2-digit',minute:'2-digit'})}</p>
+                    ${seenHtml}
+                    </div>
+                    </div>
+                    </div>
+                    `;
+
+                    // Only scroll if content changed
+                    if (area.innerHTML != html) {
+                        area.innerHTML = html;
+                        area.scrollTop = area.scrollHeight;
+                    }
+                });
+
+            }
+
+            async function sendMessage(e) {
+                e.preventDefault();
+                const content = document.getElementById('msgContent').value;
+                const toId = document.getElementById('activeToId').value;
+                if (!content.trim()) return;
+
+                const fd = new FormData();
+                fd.append('to_id', toId);
+                fd.append('content', content);
+
+                const res = await fetch('process/sendMessage.php', {
+                    method: 'POST',
+                    body: fd
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('msgContent').value = '';
+                    loadMessages();
+                    loadChatList();
+                } else {
+                    alert(data.message);
+                }
+            }
+
+            function filterChats() {
+                const q = document.getElementById('chatSearch').value.toLowerCase();
+                const items = document.querySelectorAll('#chatList > div');
+                items.forEach(item => {
+                    const name = item.querySelector('.font-bold').innerText.toLowerCase();
+                    item.style.display = name.includes(q) ? 'block' : 'none';
+                });
+            }
+
+            loadChatList().then(() => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const otherId = urlParams.get('other_id');
+                const otherName = urlParams.get('other_name');
+                if (otherId && otherName) {
+                    selectChat(otherId, otherName);
+                }
+            });
+        </script>
+
     <?php elseif ($tab == "purchase-history"):
-
-
         $invoiceQ = Database::search("SELECT * FROM `invoice` WHERE `user_id`=? ORDER BY `date` DESC", "i", [$userID]);
     ?>
         <main class="max-w-7xl mx-auto px-4 lg:px-8 py-10">
